@@ -8,7 +8,7 @@
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css">
+		<link rel="stylesheet" href="dist/theme/beige.css">
 
 		<!-- Theme used for syntax highlighted code -->
 		<link rel="stylesheet" href="plugin/highlight/monokai.css">
@@ -16,12 +16,29 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
+			    <section>
+			      <h3>Flowchart</h3>
+			      <div class="mermaid">
+				<pre>
+				  %%{init: {}}}%%
+				  flowchart TD
+				    A[Start] --> B{Is it?};
+				    B -- Yes --> C[OK];
+				    C --> D[Rethink];
+				    D --> B;
+				    B -- No ----> E[End];
+				</pre>
+			      </div>
+    			  </section>
+    
 				<section>Slide 1</section>
 				<section>Slide 2</section>
 			</div>
 		</div>
 
 		<script src="dist/reveal.js"></script>
+		<script src="node_modules/reveal.js-mermaid-plugin/plugin/mermaid/mermaid.js"></script>
+		
 		<script src="plugin/notes/notes.js"></script>
 		<script src="plugin/markdown/markdown.js"></script>
 		<script src="plugin/highlight/highlight.js"></script>
@@ -31,9 +48,14 @@
 			// - https://revealjs.com/config/
 			Reveal.initialize({
 				hash: true,
+			        mermaid: {
+			          // flowchart: {
+			          //   curve: 'linear',
+			          // },
+			        },
 
 				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMermaid ]
 			});
 		</script>
 	</body>
