@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>DM-Verity</title>
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
@@ -16,23 +16,232 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-			    <section>
-			      <h3>Flowchart</h3>
-			      <div class="mermaid">
+			<section>
+			  <div class="mermaid">
 				<pre>
 				  %%{init: {}}}%%
 				  flowchart TD
-				    A[Start] --> B{Is it?};
-				    B -- Yes --> C[OK];
-				    C --> D[Rethink];
-				    D --> B;
-				    B -- No ----> E[End];
+				    A[[Root Hash]] --> B0[[Hash]];
+				    A[[Root Hash]] --> B1[[Hash]];
+				    A[[Root Hash]] --> B2[[Hash]];
+				    
+ 				    B0[[Hash]] --> C00[Block];
+				    B0[[Hash]] --> C01[Block];
+				    B0[[Hash]] --> C02[Block]; 
+				    
+ 				    B1[[Hash]] --> C10[Block];
+				    B1[[Hash]] --> C11[Block];
+				    B1[[Hash]] --> C12[Block];    
+				    
+ 				    B2[[Hash]] --> C20[Block];
+				    B2[[Hash]] --> C21[Block];
+				    B2[[Hash]] --> C22[Block]; 
 				</pre>
-			      </div>
+			   </div>
+			<h2>DM-Verity RootFS Integrity</h2>
+			<p>
+			  <small>
+			   Presented by <a href="https://frehberg.com">frehberg &lt;Frank Rehberger&gt; </a> 
+			   (fr@frehberg.com)
+			  </small> 
+			</p>
+			</section>
+			
+			<section>
+			<h2>System Integrity</h2>
+			   
+			  <p>
+			  <div style="display:flex;">
+			  <div class="mermaid" style="flex: 1;">
+				<pre>
+				  flowchart TD
+				    
+				    subgraph system [Bare Metal]
+				        direction BT
+				        bin[Signed Binary]
+				        soc[Fused SoC]
+				        soc--verify-->bin
+				    end
+				      
+				  
+				</pre>
+			  </div>
+			  <div class="mermaid" style="flex: 1;">
+				<pre>
+				  flowchart BT
+					    
+				    subgraph system [Embedded Linux]
+				        direction BT
+				        subgraph kernel [Signed Kernel]
+							initrd[Init FS: 9..20 MB]
+					    end
+				        bl[Signed Boot Loader] 
+				        soc[Fused SoC]
+				        soc--verify-->bl
+				        bl--verify-->kernel
+				    end
+				    style kernel fill:#99C8FF
+				     
+				</pre>
+			  </div>
+			  
+			  <div class="mermaid" style="flex: 1;">
+					<pre>
+				  flowchart BT
+					    
+				    subgraph system [Feature Rich Linux]
+				        direction BT
+				        subgraph storage [Storage]
+							direction LR
+							rootfs[RootFS > 70MB]
+							others[..]
+					    end
+				        subgraph kernel [Signed Kernel]
+							initrd[Init FS: 9..20 MB]
+					    end
+				        bl[Signed Boot Loader] 
+				        soc[Fused SoC]
+				        soc--verify-->bl
+				        bl--verify-->kernel
+				        kernel--verify with dm-verity-->rootfs
+				       
+				    end
+				    style kernel fill:#99C8FF
+				    style storage fill:#99C8FF
+
+				</pre>
+			  </div>
+			  </p>
+			</section>
+
+			
+			<section>
+			  <h2>DM-Verity RootFS Integrity</h2>
+			  <p>
+				  kernel device mapper module
+			  <div style="display:flex;">
+			  <div class="mermaid" style="flex: 1;">
+				<pre>
+				  flowchart TD
+				    
+				    A[User filesystem] --> verity
+				    subgraph kernel [kernel]
+				      subgraph mapper [device mapper]
+				        direction RL
+				        crypt[dm-crypt]
+				        verity[dm-verity]
+				        integr[dm-integrity]
+				      end
+				      subgraph block [block devices]
+				        direction RL
+				        sda1[..]
+				        sda2[sda2]
+				        sda3[sda3]
+				        sda4[sda4]
+				        sda5[..]
+				      end
+				      
+				      verity-->sda3
+				      
+				      sda3-->lowlevel[Low level device driver]
+					end
+				</pre>
+			  </div>
+			  <div style="flex: 1;">
+				<ul>
+				  <li>integrity checking <br/>root filessytem</li>
+				  <li>(authenticity)<br> with signed root hash</li>
+				</ul> 
+			  </div>
+			  </p>
+			 </section> 	
+			<section data-markdown>
+			<textarea data-template>
+    ## Kernel Device Mapper (DM)
+    
+      mapping physical block devices onto higher-level virtual block devices
+     
+    * dm-crypt: encryption (rw) - confidentiality
+    * dm-integrity: journaling (rw) - integrity
+    * dm-verity: signing (ro) - integrity/authenticity
+   
+            </textarea>
+			</section>
+				
+			
+			<section>
+			    <h2>DM-Verity Hash Tree</h2>
+				<div class="mermaid">
+				<pre>
+				  %%{init: {}}}%%
+				  flowchart TD
+				    sign[[Root Hash Signature]]-->root
+				    subgraph root [Root Hash]
+				      root_hash[hash H-1..H-2]
+				    end
+				    
+				    subgraph h1 [Hash H-1]
+				      hash1[hash H-1-1..H-1-2]
+				    end
+				     subgraph h2 [Hash H-2]
+				      hash2[hash H-2-1..H-2-2]
+				    end
+				    
+				    subgraph h11 [Hash H-1-1]
+				      block1[hash Block-1]
+				    end
+				    subgraph h12 [Hash H-1-2]
+				      block2[hash Block-2]
+				    end
+				    
+				    subgraph h21 [Hash H-2-1]
+				      block3[hash Block-3]
+				    end
+				    subgraph h22 [Hash H-2-2]
+				      block4[hash Block-4]
+				    end
+				    
+				    subgraph b1 [Block B-1]
+				      data1[Data]
+				    end
+				    subgraph b2 [Block B-2]
+				      data2[Data]
+				    end
+				    
+				    subgraph b3 [Block B-3]
+				      data3[Data]
+				    end
+				    subgraph b4 [Block B-4]
+				      data4[Data]
+				    end
+				    
+				    root-->h1
+				    root-->h2
+				    h1-->h11
+				    h1-->h12
+				    
+				    h2-->h21
+				    h2-->h22
+				    
+				    h11-->b1
+				    h12-->b2
+				    h21-->b3
+				    h22-->b4
+				    style b1 fill:#99C8FF
+				    style b2 fill:#99C8FF
+				    style b3 fill:#99C8FF
+				    style b4 fill:#99C8FF
+				    style sign fill:#f9f
+				   
+				</pre>
+			   </div>
     			  </section>
     
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+			<section>Slide 1</section>
+			<section>Slide 2
+			
+    [link](https://hakim.se).
+			</section>
 			</div>
 		</div>
 
@@ -49,9 +258,9 @@
 			Reveal.initialize({
 				hash: true,
 			        mermaid: {
-			          // flowchart: {
-			          //   curve: 'linear',
-			          // },
+			          flowchart: {
+			            curve: 'linear',
+			           },
 			        },
 
 				// Learn about plugins: https://revealjs.com/plugins/
