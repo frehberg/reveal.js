@@ -40,135 +40,88 @@
 			   </div>
 			<h2>DM-Verity RootFS Integrity</h2>
 			<p>
-			  <small>
-			   Presented by <a href="https://frehberg.com">frehberg &lt;Frank Rehberger&gt; </a> 
-			   (fr@frehberg.com)
-			  </small> 
+				<div>
+				  <small>
+				   Presented by <a href="https://frehberg.com">frehberg &lt;Frank Rehberger&gt; </a> 
+				   (fr@frehberg.com)
+				   <br>
+				   FOSDEM 2023
+				  </small> 
+			  </div>
+			  <div>
+				  <small><br>
+					  Demonstrator: https://opencritis.org
+				 </small> 
+			  <div>  
 			</p>
 			</section>
 			
-			<section>
-			<h2>System Integrity</h2>
-			   
-			  <p>
-			  <div style="display:flex;">
-			  <div class="mermaid" style="flex: 1;">
-				<pre>
-				  flowchart TD
-				    
-				    subgraph system [Bare Metal]
-				        direction BT
-				        bin[Signed Binary]
-				        soc[Fused SoC]
-				        soc--verify-->bin
-				    end
-				      
-				  
-				</pre>
-			  </div>
-			  <div class="mermaid" style="flex: 1;">
-				<pre>
-				  flowchart BT
-					    
-				    subgraph system [Embedded Linux]
-				        direction BT
-				        subgraph kernel [Signed Kernel]
-							initrd[Init FS: 9..20 MB]
-					    end
-				        bl[Signed Boot Loader] 
-				        soc[Fused SoC]
-				        soc--verify-->bl
-				        bl--verify-->kernel
-				    end
-				    style kernel fill:#99C8FF
-				     
-				</pre>
-			  </div>
-			  
-			  <div class="mermaid" style="flex: 1;">
-					<pre>
-				  flowchart BT
-					    
-				    subgraph system [Feature Rich Linux]
-				        direction BT
-				        subgraph storage [Storage]
-							direction LR
-							rootfs[RootFS > 70MB]
-							others[..]
-					    end
-				        subgraph kernel [Signed Kernel]
-							initrd[Init FS: 9..20 MB]
-					    end
-				        bl[Signed Boot Loader] 
-				        soc[Fused SoC]
-				        soc--verify-->bl
-				        bl--verify-->kernel
-				        kernel--verify with dm-verity-->rootfs
-				       
-				    end
-				    style kernel fill:#99C8FF
-				    style storage fill:#99C8FF
-
-				</pre>
-			  </div>
-			  </p>
+			
+    		<section data-markdown>
+			<textarea data-template>
+    ## What is dm-verity?
+    
+     Kernel Device Mapper (DM) Module
+    
+      mapping physical block devices onto higher-level virtual block devices
+     
+    * ..
+    * dm-crypt: encryption/confidentiality (rw) 
+    * dm-integrity: journaling (rw) 
+    * **dm-verity: authenticity/integrity (ro)**
+    
+    Since kernel v3.4, Android version 4.4, (late 2013)
+        
+    https://docs.kernel.org/admin-guide/device-mapper/verity.html
+            </textarea>
 			</section>
-
+			
 			
 			<section>
 			  <h2>DM-Verity RootFS Integrity</h2>
 			  <p>
 				  kernel device mapper module
 			  <div style="display:flex;">
-			  <div class="mermaid" style="flex: 1;">
-				<pre>
-				  flowchart TD
-				    
-				    A[User filesystem] --> verity
-				    subgraph kernel [kernel]
-				      subgraph mapper [device mapper]
-				        direction RL
-				        crypt[dm-crypt]
-				        verity[dm-verity]
-				        integr[dm-integrity]
-				      end
-				      subgraph block [block devices]
-				        direction RL
-				        sda1[..]
-				        sda2[sda2]
-				        sda3[sda3]
-				        sda4[sda4]
-				        sda5[..]
-				      end
-				      
-				      verity-->sda3
-				      
-				      sda3-->lowlevel[Low level device driver]
-					end
-				</pre>
-			  </div>
-			  <div style="flex: 1;">
-				<ul>
-				  <li>integrity checking <br/>root filessytem</li>
-				  <li>(authenticity)<br> with signed root hash</li>
-				</ul> 
-			  </div>
+				  <div class="mermaid" style="flex: 1;">
+					<pre>
+					  flowchart TD
+						
+						A[User filesystem] --> verity
+						subgraph kernel [kernel]
+						  subgraph mapper [device mapper]
+							direction RL
+							crypt[dm-crypt]
+							verity[dm-verity]
+							integr[dm-integrity]
+						  end
+						  subgraph block [block devices]
+							direction RL
+							sda1[..]
+							sda2[sda2]
+							sda3[sda3]
+							sda4[sda4]
+							sda5[..]
+						  end
+						  
+						  verity--data-blocks-->sda3
+						  verity--hash-tree-->sda4
+						  
+						  sda3-->lowlevel[Low level device driver]
+						  sda4-->lowlevel[Low level device driver]
+						end
+					</pre>
+				  </div>
+				  <div style="flex: 1;">
+					<ul>
+					  <li>integrity checking <br/>root filessytem</li>
+					  <li>(authenticity)<br> with signed root hash</li>
+					</ul> 
+				  </div>
+				  </div>
 			  </p>
-			 </section> 	
-			<section data-markdown>
-			<textarea data-template>
-    ## Kernel Device Mapper (DM)
-    
-      mapping physical block devices onto higher-level virtual block devices
-     
-    * dm-crypt: encryption (rw) - confidentiality
-    * dm-integrity: journaling (rw) - integrity
-    * dm-verity: signing (ro) - integrity/authenticity
-   
-            </textarea>
-			</section>
-				
-			
+			 </section> 
+			 
+						
 			<section>
 			    <h2>DM-Verity Hash Tree</h2>
 				<div class="mermaid">
@@ -235,13 +188,216 @@
 				   
 				</pre>
 			   </div>
-    			  </section>
-    
-			<section>Slide 1</section>
-			<section>Slide 2
+    		</section>
+   
+   			
 			
-    [link](https://hakim.se).
+    		<section data-markdown>
+			<textarea data-template>
+    ## dm-verity as measure against major threat
+
+    Major threat: Manipulation of rootfs
+    
+    * Detect Manipulation at startup
+    
+    * Detect manipulation **during runtime**
+    
+    * Terminate execution if manipulation is detected
+    
+    * Deal with forward error correction (FEC)
+    
+    * Minimal runtime overhead, ~Zero latency at startup. (compare to full image hash 15MB/s) 
+    
+            </textarea>
 			</section>
+			
+			 
+    			 
+			<section>
+			<h2>DM-Verity Use Case: Rich Linux</h2>
+			  <p>
+			  <div style="display:flex;">
+			  <div class="mermaid" style="flex: 1;">
+				<pre>
+				  flowchart TD
+				    
+				    subgraph system [Bare Metal]
+				        direction BT
+				        bin[Signed Binary]
+				        soc[Fused SoC]
+				        soc--verify-->bin
+				    end
+				 
+				</pre>
+			  </div>
+			  <div class="mermaid" style="flex: 1;">
+				<pre>
+				  flowchart BT
+					    
+				    subgraph system [Embedded Linux]
+				        direction BT
+				        subgraph kernel [Signed Kernel]
+				            direction BT
+							initrd[Init FS: ca 10MB]
+					    end				        
+				        subgraph bl [Signed Boot Loader]
+				            direction BT
+						    dtb[Device Tree]
+					    end
+				        
+				        soc[Fused SoC]
+				        soc--verify-->bl
+				        bl--verify-->kernel
+				    end
+				    style kernel fill:#99C8FF
+				     
+				</pre>
+			  </div>
+			  
+			  <div class="mermaid" style="flex: 1.5;">
+							<pre>
+				  flowchart BT
+					    
+				    subgraph system [Feature Rich Linux]
+				        direction BT
+				        subgraph storage [Block Devices/Filesystems]
+							direction LR
+							hash[Hash Tree]
+							rootfs[RootFS > 70MB]
+							others[..]
+					    end
+					    
+					    subgraph fit[Signed FIT Image ca. 20MB]
+							direction TB
+							subgraph kernel [Kernel]
+								direction BT
+								initrd[Init FS: dmsetup]
+							end						          subgraph dbt[Device Tree]
+				            args[chosen.bootargs] 
+				          end
+				          kernel -.- dbt	
+				        end
+				        
+				        bl[Signed Boot Loader] 
+				        soc[Fused SoC]
+				        soc--verify-->bl
+				        bl--verify-->fit
+				        fit--dm-vertity verifies hash per block-->rootfs
+				       
+				    end
+				    style kernel fill:#99C8FF
+				    style storage fill:#99C8FF
+				    style system fill: #FFFF00
+
+				</pre>
+			  </div>
+			  </p>
+			</section>
+
+
+<section><h2>Init dm-verity without InitFS</h2>
+
+	  <div style="display:flex;">
+		<div  style="flex: 1;"> 
+		
+		Kernel patch by <br>
+		Nathan Barrett-Morrison(Timesys)<br>
+		
+		<div><br>DM-Verity Without an Initramfs</div>
+
+		</div>
+		  <div class="mermaid" style="flex: 1;">
+					<pre>
+				  flowchart BT
+					    
+				    subgraph system [Feature Rich Linux]
+				        direction BT
+				        subgraph storage [Block Devices/Filesystems]
+							direction LR
+							hash[Hash Tree]
+							rootfs[RootFS > 70MB]
+							others[..]
+					    end
+					    
+					    subgraph fit[Signed FIT Image ca. 10MB]
+							direction TB
+				          kernel[Kernel dm-init]
+				          subgraph dbt[Device Tree]
+				            args[chose.bootargs: verity init...] 
+				          end
+				     
+				          kernel -.- dbt	
+				        end
+				        
+				        bl[Signed Boot Loader] 
+				        soc[Fused SoC]
+				        soc--verify-->bl
+				        bl--verify-->fit
+				        fit--dm-vertity verifies hash per block-->rootfs
+				       
+				    end
+				    style kernel fill:#99C8FF
+				    style storage fill:#99C8FF
+				    style system fill: #FFFF00
+
+				</pre>
+			  </div>
+			  
+			  </div>
+</section>
+
+
+<section><h2>Kernel command line</h2>
+	
+<pre><code data-line-numbers="2,4,5,10-12">console=ttyAMA0,115200 ro rootwait 
+root=/dev/dm-0 
+systemd.volatile=overlay 
+dm-mod.create="verity,,,ro,0 122880 verity 1 
+/dev/sda4 /dev/sda5 1024 4096 
+61440 1 sha256 
+a100bab0d2e49b665bb18a0ee202b0fb78d084e0d6cfe3b115b6e3908b8ac181 
+5027c03524f90fdf6e71f623ce059591a0aa3b48a39807826244c5f5e1db3a15 
+3 ignore_zero_blocks 
+root_hash_sig_hex 
+3081df06092a864886f70d010702a081d13081ce020101310f300d06096086480165030402010500300b06092a864886f70d0107013181aa3081a7020101301e30193117301506035504030c0e6f70656e6372697469732e6f7267020101300d06096086480165030402010500300a06082a8648ce3d040302046730650231008a91a055a9ccac31f66a8a6bc47fdeaa060ac31aca41156bdcc3f958004f365444b5b12e7ac06e07270665d632d7d0cf02302b86ae2a66d084867a7e210f21e323bdbfec02ae54ccb02a1eb5d0568d329c94e0fa19e434de50761de31d93577411b9" 
+dm_verity.require_signatures=1 rauc.slot=B
+</code></pre>
+</section>
+
+
+<section><h2>Kernel Options</h2>
+	
+<pre><code data-line-numbers="6-11">CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_MD=y
+CONFIG_BLK_DEV_DM=y
+CONFIG_BLK_DEV_MD=y
+CONFIG_DM_INIT=y
+CONFIG_DM_VERITY=y
+CONFIG_DM_VERITY_FEC=y
+CONFIG_DM_VERITY_VERIFY_ROOTHASH_SIG=y
+CONFIG_SYSTEM_TRUSTED_KEYRING=y
+CONFIG_SYSTEM_TRUSTED_KEYS="rootfs_cert.pem"
+</code></pre>
+</section>
+
+
+		
+    		<section data-markdown>
+			<textarea data-template>
+    ## Benefits
+    
+    * Rootfs Integrity during startup
+    * Rootfs Integrity during run-time
+    * Termination in case kernel detects manipulation
+    * Almost zero cost
+    
+    </textarea>
+	</section>
+			
+<section><h2>Thank you</h2>
+			</section>
+			
 			</div>
 		</div>
 
